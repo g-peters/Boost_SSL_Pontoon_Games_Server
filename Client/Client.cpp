@@ -9,11 +9,6 @@ void read(ssl_socket&);
 
 int main(int argc, char* argv[])
 {
-	if(argc !=2)
-	{
-		std::cout << "Error, no port number provided!\n";
-		return 1;
-	}
 	// io context
 	boost::asio::io_context io_context;
 	// ssl context
@@ -25,9 +20,13 @@ int main(int argc, char* argv[])
 	auto endpoints = resolv.resolve("127.0.0.1", argv[1]);
 	boost::asio::connect(sock.next_layer(), endpoints);
 	sock.handshake(boost::asio::ssl::stream_base::client);
+	std::cout << "handshake complete:\n";
 	// read from sock
-	read(sock);
-
+	
+	try {
+		read(sock);
+	}
+	catch (std::exception& e) { std::cout<<"\nError attempting to read: " << e.what(); }
 
 	return 0;
 }
@@ -35,20 +34,26 @@ void write(ssl_socket& sock){
 	std::string data;
 	std::cout << ">\n";
 	std::getline(std::cin, data);
-	boost::asio::write(sock, boost::asio::buffer(data + "#"));
+	boost::asio::write(sock, boost::asio::buffer(data + "\n"));
 
 	read(sock);
 }
 
 
-void read(ssl_socket& sock){
-
+void read(ssl_socket& sock)
+{
 	boost::asio::streambuf buf;
-	boost::asio::read_until(sock, buf, "#");
-	std::string data = boost::asio::buffer_cast<const char*>(buf.data());
+	boost::asio::read_until(sock, buf, "\n");
+	std::istream is(&buf);
+	std::string data;
+	std::getline(is, data);
 	std::cout << data << std::endl;
-
-	// creates loop for read/write
-	write(sock);
+	try {
+		write(sock);
+	}
+	catch(std::exception& e)
+	{
+		std::cout <<"\nError attempting to write: " << e.what();
+	}
 
 }

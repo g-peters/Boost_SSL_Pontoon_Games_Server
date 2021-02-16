@@ -2,39 +2,30 @@
 
 #include <vector>
 #include <map>
+#include <memory>
 #include "Card.h"
 #include "Deck.h"
 #include <deque>
 #include "Player.h"
-#include <utility> //pairs
+#include <set>
 #include <boost/asio.hpp>
 #include <boost/smart_ptr.hpp>
-typedef boost::asio::ip::tcp::socket bsock;
-typedef std::unique_ptr<bsock> sock_ptr;
-typedef boost::asio::ssl::stream <bsock> ssl_socket;
-typedef std::unique_ptr<ssl_socket> ssl_sock_ptr;
+#include "Deck.h"
 
-
-using boost::asio::ip::tcp;
+typedef std::shared_ptr<player> player_ptr;
 
 
 class game
 {
 private:
-	std::deque<card*> deck_cards;
-	std::vector<player> vec_players;
-	deck deck_;
-	deck* ptr_deck = &deck_;
-	std::string player_name;
-	void setup_players();
-	void listen();
-	bool game_started;
-	std::vector < std::pair<player, sock_ptr>> vec_of_pairs;
-	void start_game();
-	int port;
-
+	
+	std::vector<std::shared_ptr<deck>> vec_decks;
+	std::set<player_ptr> players;
 public:
-	game(boost::asio::io_context&, int);
-	boost::asio::io_context context;
+	game();
+	void create_deck();
+	void create_dealer();
+	void add_player(player_ptr player);
+	void play(int); // needs the number of deck to be played on
 };
 

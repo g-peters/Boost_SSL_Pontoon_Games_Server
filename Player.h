@@ -14,25 +14,33 @@ typedef std::unique_ptr<ssl_socket> ssl_sock_ptr;
 
 
 
-class player
+class player : public std::enable_shared_from_this<player>
 {
 private:
 	std::deque<card> player_cards;
 	std::string player_name;
 	//sock_ptr sock;
 	ssl_sock_ptr sock;
-	//std::vector<char> buff;
-	//boost::asio::streambuf buff;
-
+	boost::asio::streambuf buffer;
+	bool ready;
+	//std::shared_ptr<deck> deck;
+	int player_id;
 public:
-	void read();
+	//void set_deck(std::shared_ptr<deck>);
+	bool get_ready();
+	virtual std::string read();
 	void player_show_cards();
-	void card_back_to_deck(card*);
-	void take_card(deck*);
-	// new player ctor
-	player(std::deque<card*>, deck*, ssl_sock_ptr&);
-	// dealer/server  ctor, no need for socket
-	player(std::string, std::deque<card*>, deck*); // for server side player(dealer), doesnt need a socket
 	void get_name();
+	void card_back_to_deck(card*);
+	void take_card(std::shared_ptr<deck>);
+	virtual void write(std::string);
+	std::string get_input();
+	// new player ctor
+	player(ssl_sock_ptr&);
+	// dealer/server  ctor, no need for socket
+	player(std::string); // for server side player(dealer), doesnt need a socket
+	~player();
+	
+	std::thread* t;
 };
 
