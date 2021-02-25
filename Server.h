@@ -27,7 +27,9 @@ private:
 	tcp::endpoint end;
 	tcp::acceptor acceptor;;
 	boost::asio::ssl::context ssl_context;
-	std::vector<std::shared_ptr<player>> vec_players;
+	//std::vector<std::shared_ptr<player>> vec_players;
+	std::vector<boost::shared_ptr<player>> vec_players;
+
 	lobby main_lobby;
 	void accept();
 };

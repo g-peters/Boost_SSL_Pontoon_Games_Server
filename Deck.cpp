@@ -5,7 +5,6 @@ deck::deck() {// constructor
 	create_deck();
 	shuffle();
 	//print_deck(); for debug purposes
-
 }
 
 
@@ -13,8 +12,8 @@ void deck::shuffle()
 
 {
 	std::srand(unsigned(std::time(0)));
-	std::cout << "\n shuffling the deck ... \n\n\n";
-	std::random_shuffle(vec_of_cards.begin(), vec_of_cards.end());
+	std::cout << "shuffling the deck ... \n\n\n";
+	std::random_shuffle(deck_cards.begin(), deck_cards.end());
 
 
 }
@@ -22,28 +21,23 @@ void deck::shuffle()
 void deck::print_deck()
 {
 	std::cout << "\n\n";
-	for (int i = 0; i < vec_of_cards.size(); ++i)
+	for (int i = 0; i < deck_cards.size(); ++i)
 	{
-		vec_of_cards[i]->get_face();
-		vec_of_cards[i]->get_suit();
-		vec_of_cards[i]->get_value();
+		deck_cards[i]->get_face();
+		deck_cards[i]->get_suit();
+		deck_cards[i]->get_value();
 
 		std::cout << "\n";
-	}std::cout << "size of deck is " << vec_of_cards.size();
+	}std::cout << "size of deck is " << deck_cards.size();
 	std::cout << "\n\n\n";
 }
 
 
 
-int deck::get_deck()
-{
-	int decka = 6;
-	return decka;
-}
 
-std::deque<card*> deck::deck_of_cards()
+std::deque<card_ptr> deck::deck_of_cards()
 {
-	return vec_of_cards;
+	return deck_cards;
 }
 
 void deck::create_deck()
@@ -53,16 +47,23 @@ void deck::create_deck()
 	{
 		for (int j = 0; j < 4; ++j)
 		{
-			vec_of_cards.push_back(new card(i, j));
+			//deck_cards.push_back(new card(i, j));
+			card_ptr c (new card(i, j));
+			deck_cards.push_back(c);
 		}
-
 	}
 }
 
-card deck::get_card()
+card_ptr deck::get_card()
 {
-	cards_in_play.push_back(std::move(vec_of_cards[0]));
-	vec_of_cards.pop_front();
-	return *cards_in_play.back();
+	inplay_cards.push_back(std::move(deck_cards[top_of_deck]));
+	deck_cards.pop_front();
+	return inplay_cards.back();
 
+}
+
+void deck::return_card_to_deck(card_ptr card_)
+{
+	deck_cards.push_back(card_);
+	
 }

@@ -2,10 +2,21 @@
 
 void card::assign_value()
 {
-	if (face > 10) { value = 10; }
-	else value = face;
+	if (face > 9) 
+	{ 
+		value = 10; 
+	}
+	else value = face + 1;
 
 }
+
+card::card(int f, int s) : suit(s), face(f) {
+	assign_value(); // constructor
+	fill_map_face();
+	fill_map_suit();
+}
+
+
 
 card::card(const card& old)
 {
@@ -25,21 +36,19 @@ card::card(const card&& old)
 	suits = old.suits;
 }
 
-char card::get_suit()
+std::string card::get_suit()
 {
-	std::cout << suits[suit];
-	return 0;
+	return suits[suit];
 }
 
-int card::get_face()
+std::string card::get_face()
 {
-	std::cout << card_face[face] << " ";
-	return 0;
+	return card_face[face];
 }
+
 
 int card::get_value()
 {
-	std::cout << value;
 	return value;
 }
 void card::fill_map_face()

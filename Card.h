@@ -17,15 +17,11 @@ private:
 	void fill_map_suit();
 
 public:
-	card(int f, int s) :suit(s), face(f) {
-		assign_value(); // constructor
-		fill_map_face();
-		fill_map_suit();
-	}
+	card(int f, int s);
 	card(const card&); // copy constructor
 	card(const card&&); // move constructor
-	char get_suit();
-	int get_face();
+	std::string get_suit();
+	std::string get_face();
 	int get_value();
 };
 

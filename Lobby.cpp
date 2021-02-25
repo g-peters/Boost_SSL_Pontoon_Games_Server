@@ -20,10 +20,11 @@ void lobby::remove_player(player_ptr p)
 
 void lobby::singleplayer(player_ptr p)
 {
+	std::cout << "Single Player called from Lobby\n";
 	game game;
 	game.create_dealer();
 	// move player to game
 	game.add_player(p);
-	game.play(1); // single player 1 pack of cards
+	game.play(0); // single player 1 pack of cards
 
 }
