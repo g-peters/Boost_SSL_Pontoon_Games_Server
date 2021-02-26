@@ -12,7 +12,6 @@
 #include <boost/smart_ptr.hpp>
 #include <boost/chrono.hpp>
 #include <boost/thread.hpp>
-#include "Deck.h"
 #include "Dealer.h"
 
 typedef boost::shared_ptr<player> player_ptr;
@@ -25,25 +24,24 @@ class game
 private:
 	boost::shared_ptr<dealer> dealer_;
 	void sleep(USHORT);
-	void take_cards(int);
-	void show_cards();
 	void get_bets();
-	void check_winner();
-	void end_game(player_ptr);
-	void end_round();
-	void options();
-	void dealer_turn(player_ptr);
+	bool play_again(player_ptr);
+	void hit_or_stick(player_ptr);
 	USHORT deck_number;
-	bool winner;
-	dealer Dealer;
-	std::vector<std::shared_ptr<deck>> vec_decks;
+	std::shared_ptr<deck> deck_;
+	//std::vector<std::shared_ptr<deck>> vec_decks;
 	std::set<player_ptr> players;
+	void hit(player_ptr);
+	void stick(player_ptr);
+
 public:
+	void reset_player(player_ptr);
+	void reset_dealer();
 	game();
-	~game();
 	void create_deck();
 	void create_dealer();
 	void add_player(player_ptr player);
-	void play(int); // needs the number of deck to be played on
+	void start_new_game();
+	void end_round(player_ptr);
 };
 

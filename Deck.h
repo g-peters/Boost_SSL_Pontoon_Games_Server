@@ -1,12 +1,10 @@
 #pragma once
 #include <deque>
 #include "Card.h"
-#include <map>
 #include <vector>
-#include <memory>
 #include <algorithm>  // random_shuffle
 #include <ctime> //srand seeding
-//#define TOP_OF_DECK 0;
+#include <memory> // shared_ptr
 static const unsigned short int  top_of_deck  = 0;
 typedef std::shared_ptr<card> card_ptr;
 class deck

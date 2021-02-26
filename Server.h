@@ -7,7 +7,7 @@
 #include "Game.h"
 #include "Player.h"
 #include "Lobby.h"
-#include <utility> // pairs
+#include <utility> 
 #include <boost/asio.hpp>
 #include <boost/smart_ptr.hpp>
 #include <boost/asio/ssl.hpp>
@@ -27,7 +27,6 @@ private:
 	tcp::endpoint end;
 	tcp::acceptor acceptor;;
 	boost::asio::ssl::context ssl_context;
-	//std::vector<std::shared_ptr<player>> vec_players;
 	std::vector<boost::shared_ptr<player>> vec_players;
 
 	lobby main_lobby;

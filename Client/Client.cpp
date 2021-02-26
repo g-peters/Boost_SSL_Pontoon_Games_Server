@@ -9,7 +9,6 @@ void read(ssl_socket&);
 const char  no_response('#');
 int main(int argc, char* argv[])
 {
-
 	// io context
 	boost::asio::io_context io_context;
 	// ssl context
@@ -23,13 +22,16 @@ int main(int argc, char* argv[])
 	sock.handshake(boost::asio::ssl::stream_base::client);
 	std::cout << "handshake complete:\n";
 	// read from sock
-	
-		try 
-		{
-			read(sock);
-		}
-		catch (std::exception& e) { std::cout << "\nError attempting to read: " << e.what(); }
-	
+
+	try 
+	{
+		read(sock);
+	}
+	catch (std::exception& e)
+ 	{ 	
+ 		std::cout << "\nError attempting to read: " << e.what();
+ 	}
+
 	return 0;
 }
 void write(ssl_socket& sock) {
@@ -41,6 +43,7 @@ void write(ssl_socket& sock) {
 	read(sock);
 }
 
+
 void read(ssl_socket& sock)
 {
 	boost::asio::streambuf buf;
@@ -49,15 +52,19 @@ void read(ssl_socket& sock)
 	std::string data;
 	std::getline(is, data);
 	if (data == "exit") 
-	{ 
-		boost::system::error_code ec;
-		sock.shutdown();
-		sock.shutdown(ec);
-		sock.lowest_layer().shutdown(
-					boost::asio::ip::tcp::socket::shutdown_both, ec);
-		sock.lowest_layer().close(ec);
+	{
+		try 
+		{
+			sock.shutdown();
+		}
+		catch (std::exception& e) 
+		{ 
+
+			//Receives EOF error which is expected with SSL socket shutdown
+			// https://stackoverflow.com/questions/25587403/boost-asio-ssl-async-shutdown-always-finishes-with-an-error ( Tanner Sansbury )
+			//std::cout << e.what(); 
+		}
 		return;
-		
 	}
 	if (data.back() == no_response) 
 	{
@@ -68,15 +75,13 @@ void read(ssl_socket& sock)
 	else
 	{
 		std::cout << data << std::endl;
-
 		try
 		{
 			write(sock);
 		}
 		catch (std::exception& e)
 		{
-			//std::cout << "\nError attempting to write: " << e.what();
+			std::cout << "\nError attempting to write: " << e.what();
 		}
 	}
-
 }

@@ -1,6 +1,6 @@
 #include "Player.h"
 
-void player::player_show_cards()
+void player::show_cards()
 {
 	std::string card_hand = "";
 	for (int i = 0; i < player_cards.size(); ++i) {
@@ -16,12 +16,14 @@ void player::player_show_cards()
 
 void player::card_back_to_deck(std::shared_ptr<deck> deck)
 {
-	for(int i = 0; i < player_cards.size();++i)
+	for(int i = 0; i <= player_cards.size();++i)
 	{
 		// move card back to deck
 		deck->return_card_to_deck(std::move(player_cards[i]));
 		//remove card from players hand
-		player_cards.pop_front();
+		if (!player_cards.empty()) {
+			player_cards.pop_front();
+		}
 	}
 }
 
@@ -46,27 +48,23 @@ player::player(ssl_sock_ptr& s) : sock(std::move(s)), balance(1000)
 	std::cout << "Player connected to server: " << player_name << std::endl;
 }
 
+void player::reset_hand()
+{
+	player_cards.clear();
+}
 
 void player::leave()
 {
 	try
 	{
-		boost::asio::error::eof;
-		boost::system::error_code ec;
-
-		std::cout << "LEAVE CALLED\n";
 		write("exit");
-		//sock->shutdown(ec);
-		sock->lowest_layer().shutdown(
-					boost::asio::ip::tcp::socket::shutdown_both, ec);
-		//sock->lowest_layer().close(ec);
-
+		sock->shutdown();
 	}
 	catch(std::exception& e)
 	{
-	
-		std::cout << "Error in player leave : " << e.what();
-
+		//Receives EOF error which is expected with SSL socket shutdown
+		// https://stackoverflow.com/questions/25587403/boost-asio-ssl-async-shutdown-always-finishes-with-an-error ( Tanner Sansbury )
+		//std::cout << "Error in player leave : " << e.what();
 	}
 }
 
@@ -83,40 +81,55 @@ bool player::get_win()
 void player::get_bet()
 {
 	write("Enter your Bet (0 - 200)");
-	std::string bet = read();
-	// Need to test for integer - isdigit loop 
-	// error here when entering string
-	if(std::stoi(bet) < min_bet || std::stoi(bet) > max_bet)
-	{
-		write("Please enter a correct bet amount.#");
-		get_bet();
-	}
-	if (std::stoi(bet) > balance) {
-		write("You do not have enough coins for that bet#");
+	std::string bet_string = "";
+	bet_string = read();
+	std::cout << "Bet Amount " << bet_string << std::endl;
+
+	bool is_only_int = (bet_string.find_first_not_of("0123456789") == std::string::npos);
+	if (!is_only_int) {
 		get_bet();
 	}
 
-	bet_amount = std::stoi(bet);
+	
+	try {
+		std::cout << "content of bet string " << bet_string << std::endl;
+		int bet = std::stoi(bet_string);
+		bet_string = "";
+
+
+		std::cout << "value of bet is now : " << bet << std::endl;
+		if (bet < min_bet || bet > max_bet)
+		{
+			write("Please enter a correct bet amount.#");
+			get_bet();
+		}
+		if (bet > balance) {
+			write("You do not have enough coins for that bet#");
+			get_bet();
+		}
+
+		bet_amount = bet;
+	}
+	catch (std::exception& e) { std::cout << "Exception STOI :" << e.what(); }
 }
 
 int player::get_hand_value()
 {
-	int hand_value = 0;
-	// sum up value of all cards in player hand
-	for (auto card_ : player_cards) {
-		// if ace value of 11 will cause more than 21, sets ace to 1
-		if(card_->get_value() == 1 &&
-				hand_value + card_->get_value() < 11) 
+	int sum_of_hand = 0;
+	bool contains_ace = false;
+	for (auto card : player_cards) 
+	{
+		if(card->get_face() == "ACE")
 		{
-			hand_value += 11;
+			contains_ace = true;
 		}
-		else
-		{
-			hand_value += card_->get_value();
-		}
-		
+		sum_of_hand += card->get_value();
+
 	}
-	return hand_value;
+	if (sum_of_hand <= 11 && contains_ace == true) {
+		sum_of_hand += 10;
+	}
+	return sum_of_hand;
 }
 
 bool player::get_ready()
@@ -136,18 +149,11 @@ int player::get_balance()
 
 std::string player::read()
 {
+	boost::asio::read_until(*sock, buffer, "\n");
+	std::istream is(&buffer);
 	std::string line;
-	try
-	{
-		boost::asio::read_until(*sock, buffer, "\n");
-		std::istream is(&buffer);
-		std::getline(is, line);
-		buffer.consume(line.size());
-	}
-	catch(std::exception& e)
-	{
-		std::cout << "Exception in Player Read: "  << e.what() << std::endl;
-	}
+	std::getline(is, line);
+	buffer.consume(line.size());
 	return line;
 }
 
@@ -160,7 +166,7 @@ void player::write(std::string data)
 	}
 	catch (std::exception& e) 
 	{
-		std::cout << "Exception in Player Write : " << e.what() << std::endl;
+		std::cout << "Error in player write "<< e.what();
 	}
 }
 
@@ -178,8 +184,5 @@ std::string player::get_input()
 
 player::~player()
 {
-	player_left();
-}
-void player::player_left(){
-	std::cout << "Player Left / DTOR\n";
+	std::cout << "Player Left (DTOR)\n";
 }

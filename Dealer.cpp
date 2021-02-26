@@ -33,6 +33,3 @@ std::string dealer::read() {
 	return "";
 	// DO NOTHING
 }
-void dealer::player_left(){
-	std::cout << "DEALER Left DTOR \n";
-}
