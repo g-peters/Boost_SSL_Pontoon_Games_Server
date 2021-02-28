@@ -29,12 +29,14 @@ private:
 	void hit_or_stick(player_ptr);
 	USHORT deck_number;
 	std::shared_ptr<deck> deck_;
-	//std::vector<std::shared_ptr<deck>> vec_decks;
 	std::set<player_ptr> players;
+	std::set<player_ptr> temp_players;
+	std::set<player_ptr> players_leaving;
 	void hit(player_ptr);
 	void stick(player_ptr);
 
 public:
+	int num_of_players();
 	void reset_player(player_ptr);
 	void reset_dealer();
 	game();
@@ -42,6 +44,6 @@ public:
 	void create_dealer();
 	void add_player(player_ptr player);
 	void start_new_game();
-	void end_round(player_ptr);
+	void end_round();
 };
 

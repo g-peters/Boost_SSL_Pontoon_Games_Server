@@ -30,6 +30,7 @@ bool game::play_again(player_ptr p)
 		return true;
 		break;
 	}
+	
 }
 
 void game::hit_or_stick(player_ptr p)
@@ -42,10 +43,10 @@ void game::hit_or_stick(player_ptr p)
 			p->write("Please enter correct command");
 			break;
 		case('s'):
-			stick(p);
+			//stick(p);
 			break;
 		case('S'):
-			stick(p);
+			//stick(p);
 			break;
 		case('h'):
 			hit(p);
@@ -98,7 +99,7 @@ void game::reset_dealer()
 game::game()
 {
 	std::cout << "game created\n";
-	create_deck();
+	//create_deck();
 	create_dealer();
 }
 
@@ -121,9 +122,15 @@ void game::add_player(player_ptr player)
 	std::cout << "player added\n";
 	players.insert(player);
 }
+int game::num_of_players()
+{
+	return players.size();
+}
 
 void game::start_new_game()
 {
+	try{
+
 	create_deck();
 	//dealer_->card_back_to_deck(deck_);
 	dealer_->take_card(deck_);
@@ -131,34 +138,87 @@ void game::start_new_game()
 	{
 		p->take_card(deck_);
 		p->show_cards();
-		get_bets();
+		//get_bets();
 	}
+	/////////////////////////////////////
+	dealer_->take_card(deck_);
+
 	for (auto p : players)
 	{
-		dealer_->take_card(deck_);
 		p->take_card(deck_);
 		p->show_cards();
 		if (p->get_hand_value() < 21)
 		{
 			hit_or_stick(p);
 		}
-		end_round(p);
-		if (play_again(p))
+	}//////////////////////////////////////
+	end_round();
+	
+
+	for(auto p : players)
+	{		
+		if( play_again(p))
 		{
+			std::cout << "Player chose to play again\n";
+			sleep(1);
+			std::cout << "2 ::: \n";
 			p->reset_hand();
-			dealer_->reset_hand();
-			start_new_game();
+			// move players that want to play again into temp container
+			temp_players.insert(p);
 		}
-		else 
+		else
 		{
-			//p->reset_hand();
-			p->leave();
+			std::cout << "Player chose to leave\n";
+			players_leaving.insert(p);
 		}
+	}//////////////////////////////////////
+	// empty current set of players
+	std::cout << "Emptying player set " << players.size() << std::endl;
+	players.clear();
+	std::cout << " player set  emptied " << players.size() << std::endl;
+
+	for (auto p : temp_players)
+	{
+		std::cout << "Temp players moved into\n";
+		// move from temp container to play container
+		players.insert(p);
+	}/////////////////////////////////////
+		std::cout << "Emptying temp set " << temp_players.size() << std::endl;
+
+	temp_players.clear();
+
+		std::cout << " temp set  emptied " << temp_players.size() << std::endl;
+
+	for (auto p : players_leaving)
+	{
+		std::cout << "Removing players from leave set " << players_leaving.size() <<std::endl;
+		// reset pointer, go out of scope, player DTOR will be called
+	//	p.reset();
+		p->leave();
+	}///////////////////////////////////////
+		std::cout << "Players leaving " << players_leaving.size() << std::endl;
+	//players_leaving.clear();
+	std::cout << "Players left " << players_leaving.size() << std::endl;
+
+	
+	std::cout << "PLAYERS SIZE BEFORE NEW GAME : " << players.size();
+	if(players.size() > 0)
+	{
+		dealer_->reset_hand();
+		start_new_game();
+	}
+	}
+	catch(std::exception& e)
+	{
+		std::cout << "EXCEPT:: " << e.what() << std::endl;
 	}
 }
 
-void game::end_round(player_ptr p)
+void game::end_round()
 {
+	for (auto p : players)
+	{
+	p->write("Dealers Cards : " + dealer_->show_hand() + "#");
 	int player_val = p->get_hand_value();
 	int dealer_val = dealer_->get_hand_value();
 	if (player_val <= 21)
@@ -183,6 +243,7 @@ void game::end_round(player_ptr p)
 	{
 		p->write("Dealers Cards " + dealer_->show_hand() + "#");
 		p->write("Dealer Wins#");
+	}
 	}
 }
 

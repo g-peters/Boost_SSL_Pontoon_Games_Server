@@ -159,6 +159,7 @@ std::string player::read()
 
 void player::write(std::string data)
 {
+	//std::cout << "PLAYER WRITE ::: " << data << std::endl;
 	try 
 	{
 		boost::asio::write(*sock, boost::asio::buffer(data + "\n"));
@@ -184,5 +185,7 @@ std::string player::get_input()
 
 player::~player()
 {
+	leave();
+	delete this;
 	std::cout << "Player Left (DTOR)\n";
 }
