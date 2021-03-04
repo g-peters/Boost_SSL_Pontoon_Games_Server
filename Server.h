@@ -1,10 +1,10 @@
 #include <vector>
 #include <map>
 #include <memory>
-#include "Card.h"
-#include "Deck.h"
+//#include "Card.h"
+//#include "Deck.h"
 #include <deque>
-#include "Game.h"
+//#include "Game.h"
 #include "Player.h"
 #include "Lobby.h"
 #include <utility> 
@@ -27,8 +27,7 @@ private:
 	tcp::endpoint end;
 	tcp::acceptor acceptor;;
 	boost::asio::ssl::context ssl_context;
-	std::vector<boost::shared_ptr<player>> vec_players;
-	void move_player(boost::shared_ptr<player>);
+
 	lobby main_lobby;
 	void accept();
 };

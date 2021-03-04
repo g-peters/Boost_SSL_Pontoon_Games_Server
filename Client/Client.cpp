@@ -23,14 +23,10 @@ int main(int argc, char* argv[])
 	std::cout << "handshake complete:\n";
 	// read from sock
 
-	try 
-	{
+	try {
 		read(sock);
 	}
-	catch (std::exception& e)
- 	{ 	
- 		std::cout << "\nError attempting to read: " << e.what();
- 	}
+	catch (std::exception& e) { std::cout << "\nError attempting to read: " << e.what(); }
 
 	return 0;
 }
@@ -57,13 +53,7 @@ void read(ssl_socket& sock)
 		{
 			sock.shutdown();
 		}
-		catch (std::exception& e) 
-		{ 
-
-			//Receives EOF error which is expected with SSL socket shutdown
-			// https://stackoverflow.com/questions/25587403/boost-asio-ssl-async-shutdown-always-finishes-with-an-error ( Tanner Sansbury )
-			//std::cout << e.what(); 
-		}
+		catch (std::exception& e) { std::cout << e.what(); }
 		return;
 	}
 	if (data.back() == no_response) 

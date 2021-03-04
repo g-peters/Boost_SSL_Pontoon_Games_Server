@@ -8,6 +8,6 @@ public:
 	std::string show_hand();
 	std::string read();
 	dealer(std::string);
-	dealer() {}
+	dealer() { std::cout << "Dealer DTOR\n"; }
 };
 

@@ -14,6 +14,8 @@ void player::show_cards()
 	write("Your cards : " + card_hand + " (" + std::to_string(value) + ")" +  '#');
 }
 
+
+// TODO - remove
 void player::card_back_to_deck(std::shared_ptr<deck> deck)
 {
 	for(int i = 0; i <= player_cards.size();++i)
@@ -45,7 +47,41 @@ void player::get_name()
 
 player::player(ssl_sock_ptr& s) : sock(std::move(s)), balance(1000)
 {
-	std::cout << "Player connected to server: " << player_name << std::endl;
+	login();
+}
+
+void player::login()
+{
+	std::string username, password;
+	write("1: Login#");
+	write("2: Register#");
+	write("3: Continue as Guest");
+	std::string input = read();
+	switch (input[0])
+	{
+	default: login();
+		break;
+	case ('1'):
+		write("Enter username");
+		username = read();
+		player_name = username;
+		write("Enter Password");
+		password = read();
+		// check exists
+		break;
+	case ('2'):
+		write("Create username");
+		username = read();
+		player_name = username;
+		write("Create Password");
+		password = read();
+
+		break;
+	case ('3'):
+		write("enter name");
+		player_name = read();
+		break;
+	}
 }
 
 void player::reset_hand()
@@ -80,37 +116,49 @@ bool player::get_win()
 
 void player::get_bet()
 {
-	write("Enter your Bet (0 - 200)");
+	write("Enter your Bet #"); 
+	write("(1):  1  (2):  10  (3):  25  (4):  50  (5): 100");
+
 	std::string bet_string = "";
 	bet_string = read();
-	std::cout << "Bet Amount " << bet_string << std::endl;
 
-	bool is_only_int = (bet_string.find_first_not_of("0123456789") == std::string::npos);
-	if (!is_only_int) {
+	switch(bet_string[0])
+	{
+		default:
+			get_bet();
+			break;
+		case('1'):
+			bet_amount = 1;
+			break;
+		case('2'):
+			bet_amount = 10;
+
+			break;
+		case('3'):
+			bet_amount = 25;
+
+			break;
+		case('4'):
+			bet_amount = 50;
+			break;
+		case('5'):
+			bet_amount = 100;
+			break;
+	}
+	if(bet_amount > balance)
+	{
+		write("You do not have enough to make that bet#");
 		get_bet();
 	}
+	else
+	{
+		write("Previous Balance : " + std::to_string(balance) + "#");
+		write("You Bet: " + std::to_string(bet_amount) + "#");
+		balance -= bet_amount;
+		write("Current Balance : " + std::to_string(balance) + "#");
 
-	
-	try {
-		std::cout << "content of bet string " << bet_string << std::endl;
-		int bet = std::stoi(bet_string);
-		bet_string = "";
-
-
-		std::cout << "value of bet is now : " << bet << std::endl;
-		if (bet < min_bet || bet > max_bet)
-		{
-			write("Please enter a correct bet amount.#");
-			get_bet();
-		}
-		if (bet > balance) {
-			write("You do not have enough coins for that bet#");
-			get_bet();
-		}
-
-		bet_amount = bet;
 	}
-	catch (std::exception& e) { std::cout << "Exception STOI :" << e.what(); }
+
 }
 
 int player::get_hand_value()
@@ -126,6 +174,7 @@ int player::get_hand_value()
 		sum_of_hand += card->get_value();
 
 	}
+	// if own ace and will go bust with value of 11, lowers ace to 1
 	if (sum_of_hand <= 11 && contains_ace == true) {
 		sum_of_hand += 10;
 	}
@@ -139,7 +188,7 @@ bool player::get_ready()
 
 void player::set_balance(int num)
 {
-	balance += num;
+	balance = balance + num;
 }
 
 int player::get_balance()
@@ -159,7 +208,6 @@ std::string player::read()
 
 void player::write(std::string data)
 {
-	//std::cout << "PLAYER WRITE ::: " << data << std::endl;
 	try 
 	{
 		boost::asio::write(*sock, boost::asio::buffer(data + "\n"));
@@ -185,7 +233,5 @@ std::string player::get_input()
 
 player::~player()
 {
-	leave();
-	delete this;
 	std::cout << "Player Left (DTOR)\n";
 }

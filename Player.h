@@ -6,6 +6,7 @@
 #include <string>
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
+#include <boost/serialization/serialization.hpp>
 
 typedef boost::asio::ip::tcp::socket bsock;
 typedef boost::asio::ssl::stream <bsock> ssl_socket;
@@ -21,6 +22,9 @@ class player : public std::enable_shared_from_this<player>
 {
 private:
 	USHORT bet_amount;
+	unsigned int games_played;
+	unsigned int games_won;
+	unsigned int games_lost;
 	//std::deque<card> player_cards;
 	ssl_sock_ptr sock;
 	boost::asio::streambuf buffer;
@@ -28,12 +32,13 @@ private:
 	unsigned int balance;
 	USHORT number_of_cards;
 	bool win;
+	void login();
 protected:
 
 	std::deque<card_ptr> player_cards;
 	std::string player_name;
 	USHORT hand_value;
-	public:
+public:
 	void reset_hand();
 	void leave();
 	USHORT get_bet_amount();
@@ -56,7 +61,7 @@ protected:
 	// dealer/server  ctor, no need for socket
 	player(std::string); // for server side player(dealer), doesnt need a socket
 	player() {}
-	~player();
+	virtual ~player();
 
 	};
 

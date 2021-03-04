@@ -18,19 +18,15 @@ void server::init_ssl()
 
 void server::accept()
 {
-
+	
 		std::cout << "Listening for connections\n";
 
 		ssl_sock_ptr sock(new ssl_socket(context, ssl_context));
 		acceptor.accept(sock->next_layer());
 		sock->handshake(boost::asio::ssl::stream_base::server);
 		boost::shared_ptr<player> new_player(new player(sock));
-		std::thread t(&lobby::insert_player, &main_lobby, new_player);		
+		std::thread t(&lobby::insert_player, &main_lobby, new_player);
 	
 		accept();
 }
 
-void server::move_player(boost::shared_ptr<player> p)
-{
-		main_lobby.insert_player(p);
-}

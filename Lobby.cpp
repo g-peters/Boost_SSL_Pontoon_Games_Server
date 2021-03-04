@@ -1,88 +1,119 @@
 #include "Lobby.h"
 
-lobby::lobby() : num_of_multiplayers(0)
+lobby::lobby()
 {
-
+	multi_game = nullptr;
+	multiplayer_size = 0;
 }
+
+lobby::~lobby()
+{
+	delete multi_game;
+}
+
+
+
 void lobby::insert_player(player_ptr p)
 {
 	std::cout << "player joined lobby\n";
-	p->get_name();
-	p->write("(S)ingle player or (M)ultiplayer?\n"); // 
+	std::thread t(&lobby::main_menu,this,std::move(p));
+	t.detach();	
+}
+
+void lobby::main_menu(player_ptr p)
+{	 
+	p->write("Options#");
+	p->write("1: New Game#");
+	p->write("2: Show Balance#");
+	p->write("3: Exit");
 	std::string input = p->read();
-	// if statement here
+	
 	switch (input[0])
 	{
-	default: insert_player(p);
+	default: main_menu(p);
 		break;
-	case ('S'):
-		singleplayer(p);
+	case ('1'):
+		single_or_multi(p);
 		break;
-	case ('s'):
-		singleplayer(p);
-		break;
-	case ('M'):
-		multiplayer(p);
-		// multi when implemented
-		break;
-	case ('m'):
-		multiplayer(p);
-		// multi when implemented
+	case('2'):
+		p->write("Balance : " + std::to_string(p->get_balance()) + "#");
+		main_menu(p);
+	case ('3'):
+		game::sleep(1);
+		p->write("Exiting Game ... #");
+		game::sleep(1);
+		p->leave();
 		break;
 	}
-
 }
-void lobby::choose_single_or_multiplayer(player_ptr p)
+
+void lobby::single_or_multi(player_ptr p )
 {
+	p->write("(1): Single player or (2): Multiplayer?");
+	std::string input = p->read();
+	if (input[0] == '1')
+	{
+		singleplayer(std::move(p));
+	}
+	else if (input[0] == '2')
+	{
 
+		multiplayer_queue.emplace(p);
+		if (multiplayer_queue.size() == 1)
+		{
+			multi_game = new game();
+			//multi_game->create_dealer();
+
+			multiplayer_queue.front()->write("How many players to wait for? ( Max 5 )");
+			std::string input = multiplayer_queue.front()->read();
+			multiplayer_size = std::stoi(input);
+
+		}
+		if (multiplayer_queue.size() == multiplayer_size)
+		{
+
+			for (int i = 0; i < multiplayer_size; ++i)
+			{
+				//multiplayer(std::move(multiplayer_queue.front()), multiplayer_size);
+				player_vec.push_back(std::move(multiplayer_queue.front()));
+				//after moving each player to game, removes them from queue
+				multiplayer_queue.pop();
+			}
+			multiplayer(multiplayer_size);
+
+		}
+	}
+	else
+	{
+		insert_player(p);
+	}
 }
+
 
 void lobby::remove_player(player_ptr p)
 {
-	p->leave();
-	//vec_players.erase(p);
+
 }
 
 void lobby::singleplayer(player_ptr p)
 {
 	game game;
-	//game.create_dealer(); // not needed? done in CTOR
-	// move player to game
-	game.add_player(p);
-	game.start_new_game();
+	game.create_dealer();
+	game.add_player(std::move(p));
+	game.start_new_game(this);
 }
-void lobby::multiplayer(player_ptr p)
+ 
+
+void lobby::multiplayer(unsigned short int sz)
 {
-	vec_players.push_back(p);
-	multiplayer_game.add_player(p);
-	std::cout << "Number of players in vec " << vec_players.size() << std::endl;
-	if(multiplayer_game.num_of_players() > 1)
+	for (int i = 0; i < sz; ++ i)
 	{
-		for(int i = 0; i <vec_players.size(); ++i)
-		{
-			vec_players[i]->write("There are " + 
-							std::to_string(vec_players.size() + 1) + 
-							" players on the server, ready to start? (Y)es or (N)o");
-
-			std::string input = vec_players[i]->read();
-			if(input[0] == 'y' || input[0] == 'Y')
-			{
-				all_ready.push_back(true);
-			}
-			else
-			{
-				// remove player?
-				all_ready.push_back(false);
-			}
-		}
-		// checks if all players are ready
-		if(std::find(begin(all_ready),end(all_ready), false) == end(all_ready))
-		{
-			multiplayer_game.start_new_game();
-		}
-		else
-		{
-
-		}
+		multi_game->add_player(std::move(player_vec[i]));
 	}
+	if (multi_game->get_num_players()  == sz)
+	{
+		// passes this pointer to game so players can be returned to lobby
+		multi_game->start_multiplayer_game(this);
+		delete multi_game;
+	}	
 }

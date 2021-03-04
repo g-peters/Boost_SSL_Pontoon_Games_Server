@@ -1,4 +1,13 @@
 #include "Game.h"
+// for forward declaration of lobby
+#include"Lobby.h"
+
+
+game::game()
+{
+	create_deck();
+	create_dealer();
+}
 
 void game::sleep(USHORT seconds)
 {
@@ -11,6 +20,10 @@ void game::get_bets()
 	{
 		p->get_bet();
 	}
+}
+int game::get_num_players()
+{
+	return players.size();
 }
 
 bool game::play_again(player_ptr p)
@@ -30,7 +43,6 @@ bool game::play_again(player_ptr p)
 		return true;
 		break;
 	}
-	
 }
 
 void game::hit_or_stick(player_ptr p)
@@ -70,20 +82,7 @@ void game::hit(player_ptr current_player)
 
 void game::stick(player_ptr current_player)
 {
-	current_player->write("Dealers Hand " + dealer_->show_hand() + "#");
-	int playerValue = current_player->get_hand_value();
-	int bankValue = dealer_->get_hand_value();
-
-	while(dealer_->get_hand_value() < 21 
-			&& dealer_->get_hand_value() < current_player->get_hand_value()
-			&& dealer_->get_number_of_cards() < 5)
-	{
-		sleep(1);
-		dealer_->take_card(deck_);
-		current_player->write("Dealers Hand " + dealer_->show_hand() + "#");
-	}
-
-
+	// DO nothing, waits till end round
 }
 
 void game::reset_player(player_ptr p)
@@ -96,12 +95,6 @@ void game::reset_dealer()
 	dealer_->card_back_to_deck(deck_);
 }
 
-game::game()
-{
-	std::cout << "game created\n";
-	//create_deck();
-	create_dealer();
-}
 
 void game::create_deck()
 {
@@ -119,106 +112,79 @@ void game::create_dealer()
 
 void game::add_player(player_ptr player)
 {
-	std::cout << "player added\n";
 	players.insert(player);
 }
-int game::num_of_players()
-{
-	return players.size();
-}
 
-void game::start_new_game()
+void game::start_new_game(lobby* lobby_ptr)
 {
-	try{
-
 	create_deck();
-	//dealer_->card_back_to_deck(deck_);
 	dealer_->take_card(deck_);
 	for (auto p : players) 
 	{
 		p->take_card(deck_);
 		p->show_cards();
-		//get_bets();
+		get_bets();
 	}
-	/////////////////////////////////////
-	dealer_->take_card(deck_);
-
 	for (auto p : players)
 	{
+		dealer_->take_card(deck_);
 		p->take_card(deck_);
 		p->show_cards();
 		if (p->get_hand_value() < 21)
 		{
 			hit_or_stick(p);
 		}
-	}//////////////////////////////////////
-	end_round();
-	
-
-	for(auto p : players)
-	{		
-		if( play_again(p))
+		end_round(p);
+		if (play_again(p))
 		{
-			std::cout << "Player chose to play again\n";
-			sleep(1);
-			std::cout << "2 ::: \n";
 			p->reset_hand();
-			// move players that want to play again into temp container
-			temp_players.insert(p);
+			dealer_->reset_hand();
+			start_new_game(lobby_ptr);
 		}
-		else
+		else 
 		{
-			std::cout << "Player chose to leave\n";
-			players_leaving.insert(p);
+			lobby_ptr->insert_player(std::move(p));
+			//p->leave();
 		}
-	}//////////////////////////////////////
-	// empty current set of players
-	std::cout << "Emptying player set " << players.size() << std::endl;
-	players.clear();
-	std::cout << " player set  emptied " << players.size() << std::endl;
-
-	for (auto p : temp_players)
-	{
-		std::cout << "Temp players moved into\n";
-		// move from temp container to play container
-		players.insert(p);
-	}/////////////////////////////////////
-		std::cout << "Emptying temp set " << temp_players.size() << std::endl;
-
-	temp_players.clear();
-
-		std::cout << " temp set  emptied " << temp_players.size() << std::endl;
-
-	for (auto p : players_leaving)
-	{
-		std::cout << "Removing players from leave set " << players_leaving.size() <<std::endl;
-		// reset pointer, go out of scope, player DTOR will be called
-	//	p.reset();
-		p->leave();
-	}///////////////////////////////////////
-		std::cout << "Players leaving " << players_leaving.size() << std::endl;
-	//players_leaving.clear();
-	std::cout << "Players left " << players_leaving.size() << std::endl;
-
-	
-	std::cout << "PLAYERS SIZE BEFORE NEW GAME : " << players.size();
-	if(players.size() > 0)
-	{
-		dealer_->reset_hand();
-		start_new_game();
-	}
-	}
-	catch(std::exception& e)
-	{
-		std::cout << "EXCEPT:: " << e.what() << std::endl;
 	}
 }
 
-void game::end_round()
+void game::start_multiplayer_game(lobby* lobby_ptr)
 {
+	
+	create_deck();
+	dealer_->take_card(deck_);
+	for (auto p : players) 
+	{
+		p->take_card(deck_);
+		p->show_cards();
+	}
+	get_bets();
+	dealer_->take_card(deck_);
+
 	for (auto p : players)
 	{
-	p->write("Dealers Cards : " + dealer_->show_hand() + "#");
+
+		p->take_card(deck_);
+		p->show_cards();
+		if (p->get_hand_value() < 21)
+		{
+			hit_or_stick(p);
+		}		
+	}
+	end_round();
+	for (auto p : players) 
+	{
+		p->reset_hand();
+		lobby_ptr->insert_player(std::move(p));
+	}
+	players.clear();
+}
+
+void game::end_round(player_ptr p)
+{
+	sleep(1);
+	p->write("Dealer Cards : " + dealer_->show_hand() + "#");
 	int player_val = p->get_hand_value();
 	int dealer_val = dealer_->get_hand_value();
 	if (player_val <= 21)
@@ -226,24 +192,79 @@ void game::end_round()
 		while (dealer_val < player_val &&
 			dealer_->get_number_of_cards() < 5)
 		{
+			sleep(1);
 			dealer_->take_card(deck_);
 			p->write("Dealer Cards : " + dealer_->show_hand() + "#");
 			dealer_val = dealer_->get_hand_value();
 		}
 		if (player_val <= dealer_val && dealer_val <=21)
 		{
+			sleep(1);
 			p->write("Dealer Wins#");
 		}
 		else
 		{
+			sleep(1);
 			p->write("Player Wins#");
+			p->set_balance(p->get_bet_amount() * 2);
 		}
 	}
 	else
 	{
+		sleep(1);
 		p->write("Dealers Cards " + dealer_->show_hand() + "#");
 		p->write("Dealer Wins#");
 	}
+	p->reset_hand();
+}
+void game::end_round()
+{
+	for (auto p : players)
+	{
+		p->write("Dealers Hand " + dealer_->show_hand() + "#");
+	}
+	//int player_val = p->get_hand_value();
+	int dealer_val = dealer_->get_hand_value();
+	for (auto p : players) {
+		int player_val = p->get_hand_value();
+		if (player_val <= 21)
+		{
+			while (dealer_val < player_val &&
+				dealer_->get_number_of_cards() < 5)
+			{
+				dealer_->take_card(deck_);
+				sleep(1);
+				p->write("Dealer Cards : " + dealer_->show_hand() + "#");
+				dealer_val = dealer_->get_hand_value();
+			}
+			for (auto p : players) 
+			{
+				p->write("Dealer Cards : " + dealer_->show_hand() + "#");
+			}
+			if (player_val <= dealer_val && dealer_val <= 21)
+			{
+				sleep(1);
+				p->write("Dealer Wins#");
+			}
+			else
+			{
+				sleep(1);
+				p->write("Player Wins#");
+				p->set_balance(p->get_bet_amount() * 2);
+
+			}
+		}
+		else
+		{
+			sleep(1);
+			p->write("Dealers Cards " + dealer_->show_hand() + "#");
+			p->write("Dealer Wins#");
+		}
+	}
+	for (auto p : players) 
+	{
+		p->write("Ending game .... #");
 	}
 }
+
 
