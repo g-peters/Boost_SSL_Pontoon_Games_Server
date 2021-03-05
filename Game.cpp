@@ -151,7 +151,6 @@ void game::start_new_game(lobby* lobby_ptr)
 
 void game::start_multiplayer_game(lobby* lobby_ptr)
 {
-	
 	create_deck();
 	dealer_->take_card(deck_);
 	for (auto p : players) 
@@ -180,7 +179,7 @@ void game::start_multiplayer_game(lobby* lobby_ptr)
 	}
 	players.clear();
 }
-
+// end round single player
 void game::end_round(player_ptr p)
 {
 	sleep(1);
@@ -200,30 +199,34 @@ void game::end_round(player_ptr p)
 		if (player_val <= dealer_val && dealer_val <=21)
 		{
 			sleep(1);
+			p->inc_games_lost();
 			p->write("Dealer Wins#");
 		}
 		else
 		{
 			sleep(1);
+			p->inc_games_won();
 			p->write("Player Wins#");
 			p->set_balance(p->get_bet_amount() * 2);
 		}
 	}
 	else
 	{
+		p->inc_games_lost();
 		sleep(1);
 		p->write("Dealers Cards " + dealer_->show_hand() + "#");
 		p->write("Dealer Wins#");
 	}
-	p->reset_hand();
+	p->inc_games_played();
+
 }
+// end round multiplayer
 void game::end_round()
 {
 	for (auto p : players)
 	{
 		p->write("Dealers Hand " + dealer_->show_hand() + "#");
 	}
-	//int player_val = p->get_hand_value();
 	int dealer_val = dealer_->get_hand_value();
 	for (auto p : players) {
 		int player_val = p->get_hand_value();
@@ -245,10 +248,12 @@ void game::end_round()
 			{
 				sleep(1);
 				p->write("Dealer Wins#");
+				p->inc_games_lost();
 			}
 			else
 			{
 				sleep(1);
+				p->inc_games_won();
 				p->write("Player Wins#");
 				p->set_balance(p->get_bet_amount() * 2);
 
@@ -259,10 +264,12 @@ void game::end_round()
 			sleep(1);
 			p->write("Dealers Cards " + dealer_->show_hand() + "#");
 			p->write("Dealer Wins#");
+			p->inc_games_lost();
 		}
 	}
 	for (auto p : players) 
 	{
+		p->inc_games_played();
 		p->write("Ending game .... #");
 	}
 }

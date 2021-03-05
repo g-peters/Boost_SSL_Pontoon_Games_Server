@@ -45,9 +45,9 @@ void read(ssl_socket& sock)
 	boost::asio::streambuf buf;
 	boost::asio::read_until(sock, buf, "\n");
 	std::istream is(&buf);
-	std::string data;
+	std::string data = "";
 	std::getline(is, data);
-	if (data == "exit") 
+	if (data == "exit_game") 
 	{
 		try 
 		{

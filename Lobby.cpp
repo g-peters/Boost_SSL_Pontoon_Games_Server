@@ -21,12 +21,13 @@ void lobby::insert_player(player_ptr p)
 }
 
 void lobby::main_menu(player_ptr p)
-{	 
-	p->write("Options#");
+{	
+	std::string input = "";
 	p->write("1: New Game#");
 	p->write("2: Show Balance#");
-	p->write("3: Exit");
-	std::string input = p->read();
+	p->write("3: Show stats#");
+	p->write("4: Exit");
+	input = p->read();
 	
 	switch (input[0])
 	{
@@ -37,11 +38,17 @@ void lobby::main_menu(player_ptr p)
 		break;
 	case('2'):
 		p->write("Balance : " + std::to_string(p->get_balance()) + "#");
+		game::sleep(1);
 		main_menu(p);
+		break;
 	case ('3'):
+		p->print_stats();
 		game::sleep(1);
-		p->write("Exiting Game ... #");
+		main_menu(p);
+		break;
+	case ('4'):
 		game::sleep(1);
+		p->save_data();
 		p->leave();
 		break;
 	}
@@ -49,16 +56,17 @@ void lobby::main_menu(player_ptr p)
 
 void lobby::single_or_multi(player_ptr p )
 {
-	p->write("(1): Single player or (2): Multiplayer?");
+	p->write("(S)ingle player or (M)ultiplayer?");
 	std::string input = p->read();
-	if (input[0] == '1')
+	if (input[0] == 's' || input[0] == 'S')
 	{
 		singleplayer(std::move(p));
 	}
-	else if (input[0] == '2')
+	else if (input[0] == 'm' || input[0] == 'M')
 	{
 
 		multiplayer_queue.emplace(p);
+		std::cout << "Multiplayer size : " << multiplayer_queue.size() << std::endl;
 		if (multiplayer_queue.size() == 1)
 		{
 			multi_game = new game();

@@ -1,5 +1,5 @@
 #include "Player.h"
-
+#include "Game.h"
 void player::show_cards()
 {
 	std::string card_hand = "";
@@ -14,8 +14,6 @@ void player::show_cards()
 	write("Your cards : " + card_hand + " (" + std::to_string(value) + ")" +  '#');
 }
 
-
-// TODO - remove
 void player::card_back_to_deck(std::shared_ptr<deck> deck)
 {
 	for(int i = 0; i <= player_cards.size();++i)
@@ -34,7 +32,7 @@ void player::take_card(std::shared_ptr<deck> deck)
 	player_cards.push_back(std::move(deck->get_card()));
 }
 
-player::player(std::string name): win(0)
+player::player(std::string name): games_lost(0), games_won(0), games_played(0)
 {
 	player_name = name; // dealer
 }
@@ -68,6 +66,17 @@ void player::login()
 		write("Enter Password");
 		password = read();
 		// check exists
+		if (check_login(username, password)) 
+		{
+			write("Login Successfull#");
+			logged_in = true;
+			load_data();
+		}
+		else 
+		{
+			write("Login Unsuccessful#");
+			login();
+		}
 		break;
 	case ('2'):
 		write("Create username");
@@ -75,12 +84,71 @@ void player::login()
 		player_name = username;
 		write("Create Password");
 		password = read();
-
+		create_user(username,password);
+		logged_in = true;
 		break;
 	case ('3'):
 		write("enter name");
 		player_name = read();
 		break;
+	}
+}
+
+void player::create_user(std::string u_name, std::string pwd)
+{
+	std::hash<std::string> hash_string;
+	std::ofstream ofs;
+	ofs.open("users.txt", std::ios::app);
+	ofs << u_name <<" " << hash_string(pwd) << std::endl;
+	ofs.close();
+
+}
+
+bool player::check_login(std::string u_name, std::string pwd)
+{
+	bool found = false;
+	std::ifstream password_file;
+	std::hash<std::string> hash_string;
+	password_file.open("users.txt");
+
+	std::string stored_password, line, stored_username;
+	std::stringstream iss(line);
+	while (std::getline(password_file, line)) {
+
+		std::stringstream iss(line);
+		iss >> stored_username >> stored_password;
+
+		if (u_name == stored_username) 
+		{
+			if(hash_string(pwd) == std::stoll(stored_password))
+			{
+				password_file.close();
+				found = true;
+			}
+		}
+	}
+	password_file.close();
+	return found;
+}
+
+void player::save_data()
+{
+	if (logged_in) 
+	{
+		std::ofstream file{ player_name + ".txt" };
+		boost::archive::text_oarchive oa{ file };
+		oa << games_played << games_won << games_lost << balance;
+		file.close();
+	}
+}
+
+void player::load_data()
+{
+	std::cout << "Loading data\n";
+	if (boost::filesystem::exists(player_name + ".txt")) {
+		std::ifstream file{ player_name + ".txt" };
+		boost::archive::text_iarchive ia{ file };
+		ia >> games_played >> games_won >> games_lost >> balance;
 	}
 }
 
@@ -93,7 +161,9 @@ void player::leave()
 {
 	try
 	{
-		write("exit");
+		write("Exiting Game .... #");
+		game::sleep(1);
+		write("exit_game");
 		sock->shutdown();
 	}
 	catch(std::exception& e)
@@ -102,6 +172,28 @@ void player::leave()
 		// https://stackoverflow.com/questions/25587403/boost-asio-ssl-async-shutdown-always-finishes-with-an-error ( Tanner Sansbury )
 		//std::cout << "Error in player leave : " << e.what();
 	}
+}
+
+void player::inc_games_won()
+{
+	++games_won;
+}
+
+void player::inc_games_lost()
+{
+	++games_lost;
+}
+
+void player::inc_games_played()
+{
+	++games_played;
+}
+
+void player::print_stats()
+{
+	write("Games Played: " + std::to_string(games_played) + "#");
+	write("Games Won: " + std::to_string(games_won) + "#");
+	write("Games Lost: " + std::to_string(games_lost) + "#");
 }
 
 USHORT player::get_bet_amount()
@@ -152,11 +244,7 @@ void player::get_bet()
 	}
 	else
 	{
-		write("Previous Balance : " + std::to_string(balance) + "#");
-		write("You Bet: " + std::to_string(bet_amount) + "#");
 		balance -= bet_amount;
-		write("Current Balance : " + std::to_string(balance) + "#");
-
 	}
 
 }
@@ -174,7 +262,6 @@ int player::get_hand_value()
 		sum_of_hand += card->get_value();
 
 	}
-	// if own ace and will go bust with value of 11, lowers ace to 1
 	if (sum_of_hand <= 11 && contains_ace == true) {
 		sum_of_hand += 10;
 	}
@@ -188,7 +275,7 @@ bool player::get_ready()
 
 void player::set_balance(int num)
 {
-	balance = balance + num;
+	balance += num;
 }
 
 int player::get_balance()
@@ -206,16 +293,16 @@ std::string player::read()
 	return line;
 }
 
-void player::write(std::string data)
+void player::write(std::string data) 
 {
 	try 
 	{
 		boost::asio::write(*sock, boost::asio::buffer(data + "\n"));
-		//buffer.consume(data.size());
 	}
 	catch (std::exception& e) 
 	{
-		std::cout << "Error in player write "<< e.what();
+
+		std::cout << "Error in player write " << e.what() <<" trying to write "<<data << std::endl;
 	}
 }
 
@@ -233,5 +320,4 @@ std::string player::get_input()
 
 player::~player()
 {
-	std::cout << "Player Left (DTOR)\n";
 }
