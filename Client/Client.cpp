@@ -53,7 +53,10 @@ void read(ssl_socket& sock)
 		{
 			sock.shutdown();
 		}
-		catch (std::exception& e) { std::cout << e.what(); }
+		catch (std::exception& e) {}
+		//Receives EOF error which is expected with SSL socket shutdown
+		// https://stackoverflow.com/questions/25587403/boost-asio-ssl-async-shutdown-always-finishes-with-an-error ( Tanner Sansbury )
+		//std::cout << "Error in shutdown " << e.what();
 		return;
 	}
 	if (data.back() == no_response) 

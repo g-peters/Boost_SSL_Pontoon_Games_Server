@@ -23,78 +23,82 @@ void lobby::insert_player(player_ptr p)
 void lobby::main_menu(player_ptr p)
 {	
 	std::string input = "";
-	p->write("1: New Game#");
-	p->write("2: Show Balance#");
-	p->write("3: Show stats#");
-	p->write("4: Exit");
-	input = p->read();
-	
-	switch (input[0])
+	do
 	{
-	default: main_menu(p);
-		break;
-	case ('1'):
-		single_or_multi(p);
-		break;
-	case('2'):
-		p->write("Balance : " + std::to_string(p->get_balance()) + "#");
-		game::sleep(1);
-		main_menu(p);
-		break;
-	case ('3'):
-		p->print_stats();
-		game::sleep(1);
-		main_menu(p);
-		break;
-	case ('4'):
-		game::sleep(1);
-		p->save_data();
-		p->leave();
-		break;
+		p->write("1: New Game#");
+		p->write("2: Show Balance#");
+		p->write("3: Show stats#");
+		p->write("4: Exit");
+		input = p->read();
+		
+		switch (input[0])
+		{
+		case('1'):
+			single_or_multi(p);
+			break;
+		case('2'):
+			p->write("Balance : " + std::to_string(p->get_balance()) + "#");
+			game::sleep(1);
+			main_menu(p);
+			break;
+		case ('3'):
+			p->print_stats();
+			game::sleep(1);
+			main_menu(p);
+			break;
+		case ('4'):
+			game::sleep(1);
+			p->save_data();
+			p->leave();
+			break;
+		}
 	}
+	while(input[0] != '1' && input[0] != '2' && input[0] != '3' && input[0] != '4');
 }
 
 void lobby::single_or_multi(player_ptr p )
 {
-	p->write("(S)ingle player or (M)ultiplayer?");
-	std::string input = p->read();
-	if (input[0] == 's' || input[0] == 'S')
-	{
-		singleplayer(std::move(p));
-	}
-	else if (input[0] == 'm' || input[0] == 'M')
-	{
 
-		multiplayer_queue.emplace(p);
-		std::cout << "Multiplayer size : " << multiplayer_queue.size() << std::endl;
-		if (multiplayer_queue.size() == 1)
+	std::string input = "";
+	do
+	{
+		p->write("1: Single player     2: Multiplayer");
+		input = p->read();
+		if (input[0] == '1')
 		{
-			multi_game = new game();
-			//multi_game->create_dealer();
-
-			multiplayer_queue.front()->write("How many players to wait for? ( Max 5 )");
-			std::string input = multiplayer_queue.front()->read();
-			multiplayer_size = std::stoi(input);
-
+			singleplayer(std::move(p));
 		}
-		if (multiplayer_queue.size() == multiplayer_size)
-		{
+		else if (input[0] == '2')
+		{	
 
-			for (int i = 0; i < multiplayer_size; ++i)
+			multiplayer_queue.emplace(p);
+			std::cout << "Multiplayer size : " << multiplayer_queue.size() << std::endl;
+			if (multiplayer_queue.size() == 1)
 			{
-				//multiplayer(std::move(multiplayer_queue.front()), multiplayer_size);
-				player_vec.push_back(std::move(multiplayer_queue.front()));
-				//after moving each player to game, removes them from queue
-				multiplayer_queue.pop();
-			}
-			multiplayer(multiplayer_size);
+				multi_game = new game();
+				//multi_game->create_dealer();
 
+				multiplayer_queue.front()->write("How many players to wait for? ( Max 5 )");
+				std::string input = multiplayer_queue.front()->read();
+				multiplayer_size = std::stoi(input);	
+
+			}
+			if (multiplayer_queue.size() == multiplayer_size)
+			{
+
+				for (int i = 0; i < multiplayer_size; ++i)
+				{
+					//multiplayer(std::move(multiplayer_queue.front()), multiplayer_size);
+					player_vec.push_back(std::move(multiplayer_queue.front()));
+					//after moving each player to game, removes them from queue
+					multiplayer_queue.pop();
+				}
+				multiplayer(multiplayer_size);
+			}
 		}
 	}
-	else
-	{
-		insert_player(p);
-	}
+	while(input[0] != '1' && input [0] != '2');
+	
 }
 
 

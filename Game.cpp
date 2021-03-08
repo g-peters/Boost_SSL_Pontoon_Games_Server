@@ -28,27 +28,34 @@ int game::get_num_players()
 
 bool game::play_again(player_ptr p)
 {
-	p->write("Would you like to play again?  (y)es or (N)o");
-	std::string input = p->read();
-	switch (input[0])
+	std::string input = "";
+	do
 	{
-	default:
-		play_again(p);
-		break;
-	case ('n'):
-		return false;
-		break;
-
-	case ('y'):
-		return true;
-		break;
+		p->write("Would you like to play again?  1: yes or  2: No");
+		input = p->read();
+		switch (input[0])
+		{
+		default:
+			return play_again(p);
+			break;
+		case ('1'):
+			return true;
+			break;
+		case ('2'):
+			return false;
+			break;
+		}
 	}
+	while (input[0] != '1' && input[0] != '2');
 }
 
 void game::hit_or_stick(player_ptr p)
 {
+	std::string input = "";
+	do
+	{
 		p->write("(H)it or (S)tick");
-		std::string input = p->read();
+		input = p->read();
 		switch (input[0])
 		{
 		default:
@@ -67,6 +74,8 @@ void game::hit_or_stick(player_ptr p)
 			hit(p);
 			break;
 		}
+	}
+	while(input[0] != 'h' && input[0] != 'H' && input[0] != 's' && input[0] != 'S' );
 }
 
 void game::hit(player_ptr current_player)
@@ -218,6 +227,7 @@ void game::end_round(player_ptr p)
 		p->write("Dealer Wins#");
 	}
 	p->inc_games_played();
+	p->reset_hand();
 
 }
 // end round multiplayer

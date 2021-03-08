@@ -32,10 +32,11 @@ void player::take_card(std::shared_ptr<deck> deck)
 	player_cards.push_back(std::move(deck->get_card()));
 }
 
-player::player(std::string name): games_lost(0), games_won(0), games_played(0)
+player::player(std::string name) 
 {
 	player_name = name; // dealer
 }
+
 
 void player::get_name()
 {
@@ -43,7 +44,7 @@ void player::get_name()
 	player_name = read();
 }
 
-player::player(ssl_sock_ptr& s) : sock(std::move(s)), balance(1000)
+player::player(ssl_sock_ptr& s) : sock(std::move(s)), balance(1000),games_lost(0), games_won(0), games_played(0)
 {
 	login();
 }
