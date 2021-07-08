@@ -10,6 +10,7 @@ void dealer::get_bet()
 	// dealer do nothing, 
 }
 
+// returns a string containing dealers cards
 std::string dealer::show_hand()
 {
 	std::string card_hand = "";
@@ -29,6 +30,8 @@ dealer::dealer(std::string name) : player(name)
 {
 
 }
+//Overloaded fucntion with player class,  Dealer being server side,
+// does not need to read from socket
 std::string dealer::read() {
 	return "";
 	// DO NOTHING

@@ -14,6 +14,7 @@ int main(int argc, char* argv[])
 	}
 	
 	boost::asio::io_context io_context;
+	// create server object, passes io_context and port for server to listen on
 	server serv(io_context, std::atoi(argv[1]));
 
 		

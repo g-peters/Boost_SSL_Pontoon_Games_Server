@@ -10,6 +10,7 @@ typedef std::shared_ptr<card> card_ptr;
 class deck
 {
 private:
+	// code adapted from (cppreference, 2021a)
 	std::deque<card_ptr>deck_cards;
 	std::deque<card_ptr>inplay_cards;
 

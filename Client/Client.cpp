@@ -7,6 +7,7 @@ typedef boost::asio::ssl::stream<bsock> ssl_socket;
 void write(ssl_socket&);
 void read(ssl_socket&);
 const char  no_response('#');
+
 int main(int argc, char* argv[])
 {
 	// io context
@@ -20,13 +21,16 @@ int main(int argc, char* argv[])
 	auto endpoints = resolv.resolve("127.0.0.1", argv[1]);
 	boost::asio::connect(sock.next_layer(), endpoints);
 	sock.handshake(boost::asio::ssl::stream_base::client);
-	std::cout << "handshake complete:\n";
 	// read from sock
 
-	try {
+	try 
+	{
 		read(sock);
 	}
-	catch (std::exception& e) { std::cout << "\nError attempting to read: " << e.what(); }
+	catch (std::exception& e) 
+	{ 
+		std::cout << "\nError attempting to read: " << e.what(); 
+	}
 
 	return 0;
 }

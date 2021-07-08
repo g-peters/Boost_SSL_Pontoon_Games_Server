@@ -54,28 +54,22 @@ void game::hit_or_stick(player_ptr p)
 	std::string input = "";
 	do
 	{
-		p->write("(H)it or (S)tick");
+		p->write("1: Hit   2: Stick");
 		input = p->read();
 		switch (input[0])
 		{
 		default:
 			p->write("Please enter correct command");
 			break;
-		case('s'):
+		case('2'):
 			//stick(p);
 			break;
-		case('S'):
-			//stick(p);
-			break;
-		case('h'):
-			hit(p);
-			break;
-		case('H'):
+		case('1'):
 			hit(p);
 			break;
 		}
 	}
-	while(input[0] != 'h' && input[0] != 'H' && input[0] != 's' && input[0] != 'S' );
+	while(input[0] != '1' && input[0] != '2' );
 }
 
 void game::hit(player_ptr current_player)
@@ -86,6 +80,10 @@ void game::hit(player_ptr current_player)
 			&& current_player->get_number_of_cards() < 5)
 	{
 		hit_or_stick(current_player);
+	}
+	else if(current_player->get_hand_value() > 21)
+	{
+		current_player->write("Bust!!#");
 	}	
 }
 
@@ -153,7 +151,6 @@ void game::start_new_game(lobby* lobby_ptr)
 		else 
 		{
 			lobby_ptr->insert_player(std::move(p));
-			//p->leave();
 		}
 	}
 }

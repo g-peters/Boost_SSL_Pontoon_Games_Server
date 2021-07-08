@@ -145,6 +145,7 @@ void player::save_data()
 
 void player::load_data()
 {
+	// code adapted from (boost, 2017)
 	std::cout << "Loading data\n";
 	if (boost::filesystem::exists(player_name + ".txt")) {
 		std::ifstream file{ player_name + ".txt" };

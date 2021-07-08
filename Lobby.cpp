@@ -16,6 +16,7 @@ lobby::~lobby()
 void lobby::insert_player(player_ptr p)
 {
 	std::cout << "player joined lobby\n";
+	// code adapted from (cppreference, 2021e)
 	std::thread t(&lobby::main_menu,this,std::move(p));
 	t.detach();	
 }
@@ -88,7 +89,6 @@ void lobby::single_or_multi(player_ptr p )
 
 				for (int i = 0; i < multiplayer_size; ++i)
 				{
-					//multiplayer(std::move(multiplayer_queue.front()), multiplayer_size);
 					player_vec.push_back(std::move(multiplayer_queue.front()));
 					//after moving each player to game, removes them from queue
 					multiplayer_queue.pop();
@@ -102,10 +102,6 @@ void lobby::single_or_multi(player_ptr p )
 }
 
 
-void lobby::remove_player(player_ptr p)
-{
-
-}
 
 void lobby::singleplayer(player_ptr p)
 {

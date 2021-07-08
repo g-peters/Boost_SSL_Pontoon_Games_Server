@@ -43,6 +43,7 @@ private:
 	unsigned int balance;
 	//std::deque<card> player_cards;
 	ssl_sock_ptr sock;
+	// code adapted from (boost, n.d.-c)
 	boost::asio::streambuf buffer;
 	bool ready;
 	unsigned short int number_of_cards;
@@ -53,7 +54,7 @@ private:
 	bool check_login(std::string,std::string);
 	void load_data();
 protected:
-
+	// code adapted from (cppreference, 2021a)
 	std::deque<card_ptr> player_cards;
 	std::string player_name;
 	USHORT hand_value;

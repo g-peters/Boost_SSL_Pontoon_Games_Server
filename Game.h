@@ -22,12 +22,14 @@ class lobby; // forward declaration for lobby_ptr
 class game
 {
 private:
+	// code adapted from (cppreference, 2021d)
 	boost::shared_ptr<dealer> dealer_;
 	void get_bets();
 	bool play_again(player_ptr);
 	void hit_or_stick(player_ptr);
 	USHORT deck_number;
 	std::shared_ptr<deck> deck_;
+	// code adapted from (cppreference, 2021c)
 	std::set<player_ptr> players;
 	void hit(player_ptr);
 	void stick(player_ptr);
